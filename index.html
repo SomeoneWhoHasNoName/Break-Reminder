@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Break Reminder Overlay</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      var(--text-sm): clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
+      --text-sm: clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
+      --text-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+      --text-lg: clamp(1.125rem, 1rem + 0.75vw, 1.5rem);
+      --text-xl: clamp(1.5rem, 1.2rem + 1.25vw, 2.25rem);
+      --text-2xl: clamp(2rem, 1.2rem + 2.5vw, 3.5rem);
+      --space-2: 0.5rem;
+      --space-3: 0.75rem;
+      --space-4: 1rem;
+      --space-5: 1.25rem;
+      --space-6: 1.5rem;
+      --space-8: 2rem;
+      --radius-xl: 1.75rem;
+      --font-body: 'Inter', sans-serif;
+      --font-display: 'Inter', sans-serif;
+      --shadow-lg: 0 18px 48px rgba(13, 21, 33, 0.28);
+      --color-text: #f8fbff;
+      --color-text-muted: rgba(248, 251, 255, 0.72);
+      --color-border: rgba(255,255,255,0.18);
+      --color-accent: #9fe2ff;
+      --color-accent-2: #ffd8b8;
+      --bg-mountain-top: rgba(248,232,231,0.95);
+      --bg-mountain-bottom: rgba(232,214,214,0.72);
+      --bg-lake-top: rgba(112, 148, 174, 0.95);
+      --bg-lake-bottom: rgba(40, 66, 93, 0.98);
+      --bg-dune-top: rgba(247, 214, 206, 0.92);
+      --bg-dune-bottom: rgba(220, 187, 180, 0.68);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: var(--font-body);
+      color: var(--color-text);
+      background:
+        radial-gradient(circle at 50% 51%, rgba(255,244,220,0.96) 0 3.5%, rgba(255,244,220,0.28) 9%, rgba(255,244,220,0) 18%),
+        linear-gradient(180deg, #dae2ef 0%, #ccd3df 38%, #bcc3d3 100%);
+    }
+
+    .scene {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      isolation: isolate;
+      background:
+        radial-gradient(1200px 360px at 48% 62%, rgba(255, 205, 185, 0.16), rgba(255, 205, 185, 0) 60%),
+        linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0));
+    }
+
+    .mist, .mist::before, .mist::after {
+      position: absolute; inset: 0; content: ""; pointer-events: none;
+    }
+    .mist {
+      background: radial-gradient(50% 30% at 25% 35%, rgba(255,255,255,0.24), transparent 70%), radial-gradient(40% 24% at 70% 16%, rgba(255,255,255,0.18), transparent 75%);
+      opacity: 0.8;
+    }
+    .mist::before {
+      background: radial-gradient(45% 24% at 55% 20%, rgba(255,255,255,0.17), transparent 72%);
+      animation: drift 18s ease-in-out infinite alternate;
+    }
+    .mist::after {
+      background: radial-gradient(45% 24% at 60% 34%, rgba(255,255,255,0.12), transparent 70%);
+      animation: drift 14s ease-in-out infinite alternate-reverse;
+    }
+
+    .mountains { position: absolute; inset: 0; pointer-events: none; }
+    .mountains::before, .mountains::after {
+      content: ""; position: absolute; left: -6%; right: 45%; bottom: 36%; height: 22%;
+      background: linear-gradient(180deg, var(--bg-mountain-top), var(--bg-mountain-bottom));
+      clip-path: polygon(0 100%, 6% 72%, 11% 77%, 15% 58%, 22% 70%, 29% 46%, 37% 63%, 44% 56%, 52% 74%, 57% 68%, 64% 81%, 70% 70%, 78% 88%, 85% 79%, 100% 100%);
+      filter: blur(0.4px); opacity: 0.88;
+    }
+    .mountains::after {
+      left: 8%; right: 58%; bottom: 39%; height: 14%; opacity: 0.55; filter: blur(6px);
+      background: linear-gradient(180deg, rgba(255,235,228,0.8), rgba(230,214,214,0.4));
+    }
+    .dune-back {
+      position: absolute; right: -8%; bottom: 29%; width: 66%; height: 28%;
+      background: linear-gradient(180deg, var(--bg-dune-top), var(--bg-dune-bottom));
+      border-top-left-radius: 58% 100%; border-top-right-radius: 18% 62%;
+      transform: rotate(-2deg); box-shadow: inset 0 18px 30px rgba(255,255,255,0.18);
+    }
+    .dune-front {
+      position: absolute; left: -6%; right: -6%; bottom: 15%; height: 24%;
+      background: linear-gradient(180deg, rgba(68, 86, 112, 0.92), rgba(34, 48, 70, 0.98));
+      clip-path: ellipse(62% 90% at 53% 100%); opacity: 0.98;
+    }
+    .lake {
+      position: absolute; left: -4%; right: -4%; bottom: -2%; height: 19%;
+      background: linear-gradient(180deg, var(--bg-lake-top), var(--bg-lake-bottom));
+      border-top-left-radius: 50% 100%; border-top-right-radius: 46% 100%; filter: saturate(0.9);
+    }
+    .lake::before {
+      content: ""; position: absolute; inset: 0 10% auto 10%; height: 72%;
+      background: linear-gradient(180deg, rgba(218, 238, 248, 0.45), rgba(218, 238, 248, 0));
+      border-top-left-radius: 50% 100%; border-top-right-radius: 50% 100%;
+      transform: translateY(6%); filter: blur(10px);
+    }
+
+    .overlay { position: absolute; inset: 0; display: grid; place-items: center; padding: var(--space-8); }
+    .reminder-card {
+      width: min(72vw, 580px); min-height: 250px; padding: var(--space-8);
+      border-radius: var(--radius-xl);
+      background: linear-gradient(180deg, rgba(17, 28, 42, 0.26), rgba(17, 28, 42, 0.42));
+      border: 1px solid var(--color-border); box-shadow: var(--shadow-lg);
+      backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+      display: flex; flex-direction: column; gap: var(--space-5); align-items: center; text-align: center;
+      animation: cardIn 700ms cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative; overflow: hidden;
+    }
+    .reminder-card::before {
+      content: ""; position: absolute; inset: auto 14% -32% 14%; height: 110px;
+      background: radial-gradient(circle, rgba(159,226,255,0.28), rgba(159,226,255,0));
+      filter: blur(18px); z-index: 0;
+    }
+
+    .eyebrow, .title, .message, .walk-stage, .action-buttons, .timer-container { position: relative; z-index: 1; }
+    
+    .eyebrow {
+      padding: 0.45rem 0.8rem; border-radius: 999px; font-size: var(--text-sm); font-weight: 600;
+      letter-spacing: 0.06em; text-transform: uppercase; color: #102234; background: rgba(248, 248, 246, 0.88);
+    }
+    .title { font-family: var(--font-display); font-size: var(--text-2xl); line-height: 1.05; font-weight: 800; margin: 0; text-shadow: 0 6px 30px rgba(0,0,0,0.18); }
+    .message { margin: 0 auto; max-width: 34ch; font-size: var(--text-base); color: var(--color-text-muted); }
+
+    /* App Specific Buttons */
+    .action-buttons {
+      display: flex; gap: var(--space-4); margin-top: var(--space-2);
+    }
+    .btn {
+      padding: 0.75rem 2.5rem; border-radius: 999px; font-family: var(--font-body);
+      font-size: var(--text-base); font-weight: 600; cursor: pointer; transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .btn-primary {
+      background: rgba(159, 226, 255, 0.1); color: var(--color-accent); border: 1px solid rgba(159, 226, 255, 0.3);
+    }
+    .btn-primary:hover { background: rgba(159, 226, 255, 0.2); border-color: rgba(159, 226, 255, 0.5); transform: translateY(-2px); }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05); color: rgba(255, 255, 255, 0.7); border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .btn-secondary:hover { background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.9); transform: translateY(-2px); }
+    .btn:active { transform: translateY(1px); }
+
+    /* Timer */
+    .timer-container {
+      font-size: 5rem; font-weight: 800; font-family: monospace; color: var(--color-accent);
+      text-shadow: 0 0 20px rgba(159,226,255,0.4); margin: var(--space-2) 0;
+    }
+    .hidden { display: none !important; }
+    #intro-view, #timer-view { display: flex; flex-direction: column; gap: var(--space-5); align-items: center; width: 100%; }
+
+    /* Animation Stage */
+    .walk-stage {
+      width: min(100%, 360px); height: 82px; position: relative; border-radius: 999px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+      border: 1px solid rgba(255,255,255,0.12); overflow: hidden;
+    }
+    .walk-track {
+      position: absolute; left: 8%; right: 8%; bottom: 18px; height: 2px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.08), rgba(255,255,255,0.45), rgba(255,255,255,0.08));
+    }
+    .walker {
+      position: absolute; left: 14%; bottom: 20px; width: 44px; height: 52px;
+      animation: walkerMove 5.2s ease-in-out infinite alternate; transform-origin: center bottom;
+    }
+    .walker-inner { position: absolute; width: 100%; height: 100%; animation: walkerBob 0.6s ease-in-out infinite alternate; }
+    .walker .head { position: absolute; top: 0; left: 14px; width: 14px; height: 14px; border-radius: 50%; background: var(--color-accent-2); box-shadow: 0 0 0 3px rgba(255,255,255,0.08); }
+    .walker .torso { position: absolute; top: 12px; left: 19px; width: 6px; height: 18px; border-radius: 999px; background: #f6fbff; }
+    .walker .arm, .walker .leg { position: absolute; width: 4px; border-radius: 999px; background: #f6fbff; transform-origin: top center; }
+    .walker .arm.left { top: 15px; left: 16px; height: 16px; animation: armLeft 1s ease-in-out infinite; }
+    .walker .arm.right { top: 15px; left: 24px; height: 16px; animation: armRight 1s ease-in-out infinite; }
+    .walker .leg.left { top: 28px; left: 18px; height: 20px; animation: legLeft 1s ease-in-out infinite; }
+    .walker .leg.right { top: 28px; left: 22px; height: 20px; animation: legRight 1s ease-in-out infinite; }
+    .pulse-dot {
+      position: absolute; right: 12%; top: 50%; width: 10px; height: 10px; border-radius: 50%;
+      background: var(--color-accent); transform: translateY(-50%); box-shadow: 0 0 0 0 rgba(159,226,255,0.65);
+      animation: pulse 1.8s ease-out infinite;
+    }
+
+    @keyframes drift { from { transform: translateX(-1.5%) translateY(0); } to { transform: translateX(1.5%) translateY(1%); } }
+    @keyframes cardIn { from { opacity: 0; transform: translateY(24px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    @keyframes walkerMove { from { transform: translateX(-28px); } to { transform: translateX(168px); } }
+    @keyframes walkerBob { from { transform: translateY(0px); } to { transform: translateY(-3px); } }
+    @keyframes armLeft { 0%, 100% { transform: rotate(28deg); } 50% { transform: rotate(-30deg); } }
+    @keyframes armRight { 0%, 100% { transform: rotate(-30deg); } 50% { transform: rotate(28deg); } }
+    @keyframes legLeft { 0%, 100% { transform: rotate(-20deg); } 50% { transform: rotate(26deg); } }
+    @keyframes legRight { 0%, 100% { transform: rotate(26deg); } 50% { transform: rotate(-20deg); } }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(159,226,255,0.45); } 70% { box-shadow: 0 0 0 14px rgba(159,226,255,0); } 100% { box-shadow: 0 0 0 0 rgba(159,226,255,0); } }
+  </style>
+</head>
+<body>
+  <main class="scene" id="main-scene">
+    <div class="mist"></div>
+    <div class="mountains"></div>
+    <div class="dune-back"></div>
+    <div class="dune-front"></div>
+    <div class="lake"></div>
+
+    <section class="overlay">
+      <div class="reminder-card">
+        
+        <!-- View 1: Intro -->
+        <div id="intro-view">
+          <div class="eyebrow">Break Reminder</div>
+          <h1 class="title">Time to stand up and walk a little.</h1>
+          <p class="message">Stretch your body, drink some water, and take a short walk before getting back to work.</p>
+          <div class="walk-stage" aria-hidden="true">
+            <div class="walk-track"></div>
+            <div class="walker">
+              <div class="walker-inner">
+                <div class="head"></div><div class="torso"></div>
+                <div class="arm left"></div><div class="arm right"></div>
+                <div class="leg left"></div><div class="leg right"></div>
+              </div>
+            </div>
+            <div class="pulse-dot"></div>
+          </div>
+          <div class="action-buttons">
+            <button class="btn btn-secondary" onclick="skipBreak()">Skip</button>
+            <button class="btn btn-primary" onclick="startBreak()">Start Break</button>
+          </div>
+        </div>
+
+        <!-- View 2: Timer -->
+        <div id="timer-view" class="hidden">
+          <div class="eyebrow">On Break</div>
+          <div class="timer-container" id="timer-display">05:00</div>
+          <p class="message">Take a deep breath and step away from the screen.</p>
+          <div class="walk-stage" aria-hidden="true">
+            <div class="walk-track"></div>
+            <div class="walker">
+              <div class="walker-inner">
+                <div class="head"></div><div class="torso"></div>
+                <div class="arm left"></div><div class="arm right"></div>
+                <div class="leg left"></div><div class="leg right"></div>
+              </div>
+            </div>
+            <div class="pulse-dot"></div>
+          </div>
+          <div class="action-buttons">
+            <button class="btn btn-secondary" onclick="skipBreak()">End Early</button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <script>
+    let timerInterval;
+
+    function skipBreak() {
+      if (timerInterval) clearInterval(timerInterval);
+      window.electronAPI.skipBreak();
+      resetView();
+    }
+
+    async function startBreak() {
+      document.getElementById('intro-view').classList.add('hidden');
+      document.getElementById('timer-view').classList.remove('hidden');
+      
+      const durationMins = await window.electronAPI.getBreakDuration();
+      let timeLeft = durationMins * 60;
+      
+      updateDisplay(timeLeft);
+      
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        updateDisplay(timeLeft);
+        
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          window.electronAPI.endBreak();
+          resetView();
+        }
+      }, 1000);
+    }
+
+    function updateDisplay(seconds) {
+      const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+      const secs = (seconds % 60).toString().padStart(2, '0');
+      document.getElementById('timer-display').innerText = `${mins}:${secs}`;
+    }
+
+    function resetView() {
+      // Delay reset slightly to let window hide smoothly
+      setTimeout(() => {
+        document.getElementById('intro-view').classList.remove('hidden');
+        document.getElementById('timer-view').classList.add('hidden');
+      }, 500);
+    }
+  </script>
+</body>
+</html>
