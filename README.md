@@ -26,6 +26,7 @@ You don't need to be a developer to use this!
 Built using **Electron**, **Node.js**, **HTML5**, and vanilla **CSS**. No bulky frameworks were used for the UI, ensuring maximum performance.
 <img width="1917" height="1079" alt="Screenshot 2026-05-13 222201" src="https://github.com/user-attachments/assets/0fa1014e-f6c9-415d-92f8-5087d24d7b9d" />
 <img width="1914" height="926" alt="image" src="https://github.com/user-attachments/assets/375dd1d7-4781-4d72-838e-735a2800beee" />
-https://github.com/user-attachments/assets/b6aaf5f4-ac44-4115-9590-6c7ce91478f2
+<img width="1920" height="916" alt="Recording 2026-05-13 231512" src="https://github.com/user-attachments/assets/85cbad83-db2e-4cb2-a548-e66d9e444636" />
+
 
 
