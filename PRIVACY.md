@@ -1,0 +1,2 @@
+Privacy Policy
+Screen Time Reminder respects your privacy. This application operates entirely offline and does not collect, store, or transmit any personal data, telemetry, or analytics. Your settings are saved locally on your own machine.
